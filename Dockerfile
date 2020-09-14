@@ -1,8 +1,10 @@
 FROM golang:1.14-alpine
 
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --no-cache --update alpine-sdk
 
 COPY . /go/src/github.com/dexidp/dex
+RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN cd /go/src/github.com/dexidp/dex && make release-binary
 
 FROM alpine:3.12
@@ -11,6 +13,7 @@ FROM alpine:3.12
 # experience when this doesn't work out of the box.
 #
 # OpenSSL is required so wget can query HTTPS endpoints for health checking.
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk add --update ca-certificates openssl
 
 USER 1001:1001
