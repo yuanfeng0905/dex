@@ -285,10 +285,14 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 	}
 	handleWithCORS := func(p string, h http.HandlerFunc) {
 		var handler http.Handler = h
+		var opts []handlers.CORSOption
+		// FIXME: 支持客户端验证头
+		opts = append(opts, handlers.AllowedHeaders([]string{"authorization"}))
 		if len(c.AllowedOrigins) > 0 {
 			corsOption := handlers.AllowedOrigins(c.AllowedOrigins)
-			handler = handlers.CORS(corsOption)(handler)
+			opts = append(opts, corsOption)
 		}
+		handler = handlers.CORS(opts...)(handler)
 		r.Handle(path.Join(issuerURL.Path, p), instrumentHandlerCounter(p, handler))
 	}
 	r.NotFoundHandler = http.HandlerFunc(http.NotFound)
